@@ -1,0 +1,20 @@
+detector_model:
+  name: "FastMtcnn"
+  model_path: null
+  arguments:
+    align: True
+    expand_percentage: 0
+
+embedding_model:
+  name: "FaceNet512"
+  model_path: "/Users/kritpatel/Desktop/myMac/projects/repos/FaceTrace/weights/facenet512/facenet512_weights.h5"
+
+index_model:
+  name: "faiss"
+  store_name: "ImageMetadataStore"
+
+image_store:
+  store_name: "ImageMetadataStore"
+  builder_name: "ImageMetadataStoreBuilder"
+  path: "/Users/kritpatel/Desktop/myMac/projects/face_recognition/datasets/"
+

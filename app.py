@@ -7,49 +7,81 @@ import tornado
 # Internal Imports
 from components.detection import detection
 from components.embeddings import represent
+from components.verification import verification, recognize
 from models.model_holder import ModelHolder
 from stores.store_holder import StoreHolder
 from configurations.config import app_config
+from components.operations import add_images_to_image_store
 
 PORT = 8000
 TMP_DIR = "/tmp"
 
 
-class AddHandler(tornado.web.RequestHandler):
+class BaseHandler(tornado.web.RequestHandler):
 
     async def post(self):
         try:
-            payload = tornado.escape.json_decode(self.request.body)
+            payloads = tornado.escape.json_decode(self.request.body)
         except Exception as e:
             raise tornado.web.HTTPError(status_code=400, log_message=str(e))
 
-        logging.info("Payload: {}".format(payload))
-        return "Looks fine to me"
+        results = await self._process_payload(payloads)
+        return self.write({"results": results})
+
+    async def _process_payload(self, payloads):
+        raise NotImplementedError()
 
 
-class RecognitionHandler(tornado.web.RequestHandler):
+class AddHandler(BaseHandler):
 
-    async def post(self):
-        try:
-            payload = tornado.escape.json_decode(self.request.body)
-        except Exception as e:
-            raise tornado.web.HTTPError(status_code=400, log_message=str(e))
+    async def _process_payload(self, payloads):
+        images = [payload["image"] for payload in payloads]
+        user_ids = [payload["image"] for payload in payloads]
 
-        logging.info("Payload: {}".format(payload))
-        return "Looks fine to me"
+        outputs = add_images_to_image_store(
+            images=images,
+            user_ids=user_ids,
+            store_name=app_config.image_store.store_name,
+            store_path=app_config.image_store.path,
+            embedding_name=app_config.embedding_model.name,
+            detector_name=app_config.detector_model.name,
+            **app_config.detector_model.arguments,
+        )
+        return outputs
 
 
-class FaceDetectionHandler(tornado.web.RequestHandler):
+class VerifyHandler(BaseHandler):
 
-    async def post(self):
+    async def _process_payload(self, payloads):
+        images = [(payload["image1"], payload["image2"]) for payload in payloads]
+        outputs = verification(
+            image_tuples=images,
+            embedding_name=app_config.embedding_model.name,
+            detector_name=app_config.detector_model.name,
+            **app_config.detector_model.arguments,
+        )
+        return outputs
 
-        try:
-            payload = tornado.escape.json_decode(self.request.body)
-        except Exception as e:
-            raise tornado.web.HTTPError(status_code=400, log_message=str(e))
 
+class RecognitionHandler(BaseHandler):
+
+    async def _process_payload(self, payloads):
+        images = [payload["image"] for payload in payloads]
+        outputs = recognize(
+            images=images,
+            embedding_name=app_config.embedding_model.name,
+            store_name=app_config.image_store.store_name,
+            detector_name=app_config.detector_model.name,
+            **app_config.detector_model.arguments,
+        )
+        return outputs
+
+
+class FaceDetectionHandler(BaseHandler):
+
+    async def _process_payload(self, payloads):
         outputs = detection(
-            images=[payload["image"] for payload in payload["payloads"]],
+            images=[payload["image"] for payload in payloads["payloads"]],
             model_name=app_config.detector_model.name,
             align=app_config.detector_model.arguments.get("align", False),
             expand_percentage=app_config.detector_model.arguments.get(
@@ -71,20 +103,15 @@ class FaceDetectionHandler(tornado.web.RequestHandler):
                     }
                 )
             responses.append({"faces": faces})
-        return self.write({"results": responses})
+        return responses
 
 
-class FaceRepresentationHandler(tornado.web.RequestHandler):
+class FaceRepresentationHandler(BaseHandler):
 
-    async def post(self):
-
-        try:
-            payload = tornado.escape.json_decode(self.request.body)
-        except Exception as e:
-            raise tornado.web.HTTPError(status_code=400, log_message=str(e))
+    async def _process_payload(self, payloads):
 
         outputs = represent(
-            images=[payload["image"] for payload in payload["payloads"]],
+            images=[payload["image"] for payload in payloads["payloads"]],
             embedding_name=app_config.embedding_model.name,
             detector_name=app_config.detector_model.name,
             align=app_config.detector_model.arguments.get("align", False),
@@ -109,7 +136,7 @@ class FaceRepresentationHandler(tornado.web.RequestHandler):
                         _dict["embedding"] = embeddings.embedding
                 faces.append(_dict)
             responses.append({"faces": faces})
-        return self.write({"results": responses})
+        return responses
 
 
 def app_initializer():
@@ -153,15 +180,6 @@ def app_initializer():
             logging.info("Successfully loaded image metadata")
         except Exception as e:
             raise tornado.web.HTTPError(status_code=500, log_message=str(e))
-
-    if app_config.index_model:
-        if not StoreHolder.get_store(app_config.index_model.store_name):
-            logging.warning(
-                f"{app_config.index_model.store_name} store does not exist\n"
-                f"Please load the store first for verification service to work"
-            )
-
-        store = StoreHolder.get_store(app_config.index_model.store_name)
 
 
 def main():

@@ -9,12 +9,15 @@ embedding_model:
   name: "FaceNet512"
   model_path: "/Users/kritpatel/Desktop/myMac/projects/repos/FaceTrace/weights/facenet512/facenet512_weights.h5"
 
-index_model:
-  name: "faiss"
-  store_name: "ImageMetadataStore"
 
 image_store:
   store_name: "ImageMetadataStore"
   builder_name: "ImageMetadataStoreBuilder"
   path: "/Users/kritpatel/Desktop/myMac/projects/face_recognition/datasets/"
+  arguments:
+    vector_indexing: true
+    indexing_kwargs:
+      index_type: "Flat"
+      metric: "inner_product"
+      embedding_model: "FaceNet512"
 

@@ -30,7 +30,8 @@ def embeddings(
     images = [load_image_using_pil(image) for image in images]
     outputs = embedding_model.predict(images)
     return [
-        FaceEmbeddings(model_name=model_name, embedding=output) for output in outputs
+        FaceEmbeddings(model_name=model_name, embedding=np.array(output))
+        for output in outputs
     ]
 
 
@@ -57,7 +58,7 @@ def represent(
         for idx, image in enumerate(images):
             detected_outputs.append(
                 [
-                    DetectedFaceMetadata(
+                    DetectedFace(
                         model_name=detector_name,
                         image=image,
                         facial_segments=FaceSegment(

@@ -6,7 +6,7 @@ import logging
 
 # Third Party Imports
 import yaml
-
+import numpy as np
 
 # Internal Imports
 
@@ -56,3 +56,12 @@ def load_json(path):
 def dump_json(data, path):
     with open(path, "w") as file:
         json.dump(data, file)
+
+
+def normalize_vectors(vectors, **kwargs):
+    vectors = np.array(vectors, dtype=np.float32)
+    for i in range(0, len(vectors)):
+        if np.linalg.norm(vectors[i]) == 0:
+            continue
+        vectors[i] /= np.linalg.norm(vectors[i])
+    return np.array(vectors, dtype=kwargs.get("dtype", "float32"))

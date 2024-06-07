@@ -32,8 +32,6 @@ class Configuration:
 
     image_store: StoreConfig = None
 
-    index_model: ModelConfig = None
-
 
 def create_configurations() -> Configuration:
 
@@ -48,7 +46,6 @@ def create_configurations() -> Configuration:
             "image_store": StoreConfig(**config.get("image_store", {})),
             "detector_model": ModelConfig(**config.get("detector_model", {})),
             "embedding_model": ModelConfig(**config.get("embedding_model", {})),
-            "index_model": ModelConfig(**config.get("index_model", {})),
         }
     )
     return config

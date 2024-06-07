@@ -11,17 +11,20 @@ from stores import AbstractStoreBuilder
 from structures.image import ImageMetadata
 from components.embeddings import represent
 from configurations.config import app_config
+from structures.image import ImageVectorMetadata
 from stores.image_store import ImageMetadataStore
+from stores.vector_store import ImageMetadataVectorStore
 
 
 class ImageMetadataStoreBuilder(AbstractStoreBuilder):
 
-    def __init__(self, metadata_file_path: str):
+    def __init__(self, metadata_file_path: str, **kwargs):
         self.image_metadata_store = None
         self.file_path = metadata_file_path
 
-    def load(self, base_path: str):
+    def load(self, base_path: str, **kwargs):
         metadata_file_path = os.path.join(base_path, "metadata.json")
+        kwargs.update({"metadata_path": metadata_file_path})
 
         if os.path.exists(metadata_file_path):
             metadata = load_json(metadata_file_path)
@@ -37,7 +40,7 @@ class ImageMetadataStoreBuilder(AbstractStoreBuilder):
                 image_metadata.append(ImageMetadata.from_json(meta))
 
             self.image_metadata_store = ImageMetadataStore(
-                image_metadata=image_metadata, metadata_path=metadata_file_path
+                image_metadata=image_metadata, **kwargs
             )
             logging.info("image metadata store loaded successfully")
             return self.image_metadata_store
@@ -62,8 +65,9 @@ class ImageMetadataStoreBuilder(AbstractStoreBuilder):
                 ),
             )
             image.detected_faces = detected_faces[0]
+
         self.image_metadata_store = ImageMetadataStore(
-            image_metadata=image_metadata, metadata_path=metadata_file_path
+            image_metadata=image_metadata, **kwargs
         )
         logging.info("image metadata store loaded successfully")
         return self.image_metadata_store

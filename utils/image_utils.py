@@ -32,6 +32,17 @@ def load_image_using_pil(image: Union[str, np.ndarray]) -> np.ndarray:
     return image
 
 
+def export_image_using_pil(image: Union[str, np.ndarray], path: str):
+    if isinstance(image, np.ndarray):
+        image = pilImage.fromarray(image)
+    else:
+        # base64 encoded image
+        image_string = base64.b64decode(image)
+        image = pilImage.open(io.BytesIO(image_string))
+    image.save(path)
+    return path
+
+
 def image_hash(image_path):
     with pilImage.open(image_path) as img:
         img_byte_arr = io.BytesIO()

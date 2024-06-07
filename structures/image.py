@@ -52,12 +52,13 @@ class FaceEmbeddings:
         return f"{self.model_name}"
 
     def to_json(self):
-        return {"model_name": self.model_name, "embedding": self.embedding}
+        return {"model_name": self.model_name, "embedding": self.embedding.tolist()}
 
     @staticmethod
     def from_json(json_dict):
         return FaceEmbeddings(
-            model_name=json_dict["model_name"], embedding=json_dict["embedding"]
+            model_name=json_dict["model_name"],
+            embedding=np.array(json_dict["embedding"]),
         )
 
 
@@ -161,3 +162,14 @@ class ImageMetadata:
     @detected_faces.setter
     def detected_faces(self, detected_faces):
         self._detected_faces = detected_faces
+
+
+@dataclass
+class ImageVectorMetadata:
+    index: int
+    image_hash_key: str
+    embedding_model: str
+    embedding: np.ndarray
+
+    def __str__(self):
+        return f"{self.image_hash_key}_{self.index}_{self.embedding_model}"

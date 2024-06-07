@@ -1,10 +1,11 @@
 # Standard Imports
 import time
+import logging
 
 # Third Part Imports
 
 # Internal Imports
-from stores.builder import ImageMetadataStoreBuilder
+from stores.builder import ImageMetadataStoreBuilder, ImageMetadataVectorStoreBuilder
 
 
 class StoreHolder(object):
@@ -16,7 +17,8 @@ class StoreHolder(object):
             if builder_name not in globals():
                 raise Exception(f"{builder_name} builder does not exists")
 
-            builder = globals()[builder_name](store_path)
+            logging.info("kwargs: {}".format(kwargs))
+            builder = globals()[builder_name](store_path, **kwargs)
             StoreHolder._store_holder[store_name] = builder.load(store_path, **kwargs)
             StoreHolder._last_load_time[builder_name] = time.time()
 

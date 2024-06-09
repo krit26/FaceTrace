@@ -1,7 +1,7 @@
 FROM python:3.9
 
 RUN apt-get -y update \
-    && apt-get install libgl1-mesa-glx
+    && apt-get install -y libgl1-mesa-glx
 
 
 RUN mkdir -p /FaceTrace

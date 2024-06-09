@@ -1,10 +1,10 @@
 tornado==6.4
-opencv-python~=4.9.0.80
-PyYAML~=6.0.1
-numpy~=1.26.4
-matplotlib~=3.8.1
-pillow~=10.3.0
-torch~=2.2.2
-tensorflow~=2.16.1
+opencv-python==4.9.0.80
+PyYAML==6.0.1
+numpy==1.26.4
+matplotlib==3.8.1
+pillow==10.3.0
+torch==2.2.2
+tensorflow==2.16.1
 faiss-cpu==1.8.0
 requests==2.32.3

@@ -5,7 +5,7 @@ from typing import Union
 # Third Part Imports
 
 # Internal Imports
-from models.detectors.fast_mtcnn import FastMtcnn
+from models.detectors.mtcnn import FastMtcnn
 from models.embeddings.facenet import FaceNet512
 from models.detectors import AbstractDetectionModel
 from models.embeddings import AbstractEmbeddingModel

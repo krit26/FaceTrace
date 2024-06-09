@@ -4,10 +4,10 @@ from typing import List, Union
 # Third Party Imports
 import torch
 import numpy as np
-from facenet_pytorch import MTCNN as pt_fast_mtcnn
 
 # Internal Imports
 from structures.image import FaceSegment
+from models.detectors.fast_mtcnn.model import MTCNN
 from models.detectors import AbstractDetectionModel
 
 
@@ -20,7 +20,7 @@ class FastMtcnn(AbstractDetectionModel):
         self.model = None
 
     def load(self, model_path: Union[str, None]):
-        self.model = pt_fast_mtcnn(device=self.device)
+        self.model = MTCNN(device=self.device)
 
     def predict(self, inputs: List[np.ndarray]) -> List[List[FaceSegment]]:
         outputs = []

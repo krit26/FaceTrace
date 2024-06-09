@@ -8,6 +8,18 @@ Face Recognition Project
 - `<base_path>/weights/<model-name>/weights.h5`: this folder will contain the weights of the facenet models.
   - copy the `/weights` folder from repo to the `<base_path>`
 
+### Docker setup:
+- create docker image:
+    ```
+    cd /FaceTrace
+    docker build -t facetrace/facenet:master-09JUNE2024-v0 -f ./dockerfile .
+    ```
+- Run service:
+    ```
+    docker run -itd -v <host_path>:<container_path> -e APP_CONFIG_PATH=<path_to_config.yaml> facetrace/facenet:master-09JUNE2024-v0
+    ```
+
+
 ### API Contract
 Face Recognition API support following endpoints:
 1. `/face-detect`: detects the bounding box of facial area in the input image

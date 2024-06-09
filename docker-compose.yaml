@@ -1,0 +1,10 @@
+version: '3'
+services:
+  facetrace:
+    image: "<name>:tag"
+    ports:
+      - 8000:8000
+    environment:
+      - APP_CONFIG_PATH=<path>/config.yaml
+    volumes:
+      - <host_path>:<docker_path>

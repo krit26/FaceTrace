@@ -192,7 +192,7 @@ def main():
             (r"/represent", FaceRepresentationHandler),
         ]
     )
-    application.listen(8000)
+    application.listen(PORT)
     logging.info(f"Starting Application at: {PORT}")
     tornado.ioloop.IOLoop.current().start()
 

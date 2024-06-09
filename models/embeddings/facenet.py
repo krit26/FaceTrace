@@ -19,11 +19,11 @@ from tensorflow.keras.layers import add
 from tensorflow.keras import backend as K
 
 # Internal Imports
-from models import AbstractModel
 from utils.image_utils import resize_image
+from models.embeddings import AbstractEmbeddingModel
 
 
-class FaceNet512(AbstractModel):
+class FaceNet512(AbstractEmbeddingModel):
 
     def __init__(self, **kwargs):
         self.device = kwargs.get(

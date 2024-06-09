@@ -7,7 +7,7 @@ detector_model:
 
 embedding_model:
   name: "FaceNet512"
-  model_path: "/Users/kritpatel/Desktop/myMac/projects/repos/FaceTrace/weights/facenet512/facenet512_weights.h5"
+  model_path: "/Users/kritpatel/Desktop/myMac/projects/face_recognition/datasets/weights/FaceNet512/weights.h5"
 
 
 image_store:
@@ -20,4 +20,6 @@ image_store:
       index_type: "Flat"
       metric: "inner_product"
       embedding_model: "FaceNet512"
+    dumping_kwargs:
+      interval: 120
 

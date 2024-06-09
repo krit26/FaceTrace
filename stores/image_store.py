@@ -2,8 +2,8 @@
 import logging
 import time
 import asyncio
-from typing import List
 from threading import Thread
+from typing import List, Union
 
 # Third Party Imports
 import faiss
@@ -12,6 +12,7 @@ import numpy as np
 # Internal Imports
 from utils.utils import dump_json
 from utils.utils import normalize_vectors
+from constants.constants import EMBEDDING_MODEL_DIMENSION
 from structures.image import ImageMetadata, ImageVectorMetadata
 
 
@@ -22,70 +23,30 @@ class ImageMetadataStore:
         self._hash_vs_images = {
             metadata.hash_key: metadata for metadata in image_metadata
         }
-        self._user_id_vs_images = {}
-        for metadata in self._image_metadata:
-            if metadata.user_id not in self._user_id_vs_images:
-                self._user_id_vs_images[metadata.user_id] = []
-            self._user_id_vs_images[metadata.user_id].append(metadata)
 
-        logging.info("kwargs: {}".format(kwargs))
+        # Vector indexing arguments
         self.vector_indexing = kwargs.get("vector_indexing", False)
+        _indexing_kwargs = kwargs.get("indexing_kwargs", {})
+        self._index_type = _indexing_kwargs.get("index_type", "Flat")
+        self._metric = _indexing_kwargs.get("metric", "inner_product")
+        self._embedding_model = _indexing_kwargs.get("embedding_model", "FaceNet512")
+        self._vector_index_metadata = []
+        self._faiss = None
         if self.vector_indexing:
-            _vector_indexing_kwargs = kwargs.get("vector_indexing_kwargs", {})
-            self._index_type = kwargs.get("index_type", "Flat")
-            self._metric = kwargs.get("metric", "inner_product")
-            self._embedding_model = kwargs.get("embedding_model", "FaceNet512")
             self._build_index()
 
-        self._metadata_path = kwargs.get("metadata_path", None)
-        if self._metadata_path:
+        # Store dumping thread initializer
+        self._store_path = kwargs.get("store_path", None)
+        if self._store_path:
+            _dumping_kwargs = kwargs.get("dumping_kwargs", {})
             self._dump_in_progress = False
             self._dump_loop_stop_event = asyncio.Event()
             self._dump_thread = Thread(
                 target=self._dump_loop, args=(self._dump_loop_stop_event,), daemon=True
             ).start()
-
-    def _build_index(self):
-        logging.info("building index")
-        vectors_metadata = []
-        for metadata in self._image_metadata:
-            for idx, face in enumerate(metadata.detected_faces):
-                for vector in face.embeddings:
-                    if self._embedding_model == vector.model_name:
-                        vectors_metadata.append(
-                            ImageVectorMetadata(
-                                index=idx,
-                                embedding_model=self._embedding_model,
-                                image_hash_key=metadata.hash_key,
-                                embedding=vector.embedding,
-                            )
-                        )
-        vectors = [meta.embedding for meta in vectors_metadata]
-        self._build_faiss_index(vectors)
-        self._vector_index_metadata = vectors_metadata
-        logging.info("vector index created successfully")
-
-    def _build_faiss_index(self, vectors):
-        logging.info("building faiss index")
-        vectors = np.array(vectors)
-        dimension = vectors.shape[1]
-        if self._metric == "inner_product":
-            self._faiss = faiss.index_factory(
-                dimension, self._index_type, faiss.METRIC_INNER_PRODUCT
-            )
-        else:
-            self._faiss = faiss.index_factory(dimension, self._index_type)
-        if self._metric == "inner_product":
-            vectors = normalize_vectors(vectors)
-        self._faiss.add(vectors)
-        logging.info(
-            "Faiss index created with index size: {}".format(self._faiss.ntotal)
-        )
+            self._dumping_interval = _dumping_kwargs.get("interval", 300)
 
     def add(self, image_metadata: ImageMetadata):
-        if image_metadata.hash_key() in self._hash_vs_images:
-            raise Exception("This image metadata already exists")
-
         while True:
             if self._dump_in_progress:
                 time.sleep(1)
@@ -97,28 +58,59 @@ class ImageMetadataStore:
             return False, f"Duplicate image. image {metadata.image_path} already exists"
 
         self._image_metadata.append(image_metadata)
-        self._hash_vs_images[image_metadata.hash_key()] = image_metadata
-        self._user_id_vs_images[image_metadata.user_id()].append(image_metadata)
+        self._hash_vs_images[image_metadata.hash_key] = image_metadata
 
         if self.vector_indexing:
             self._add_to_index(image_metadata)
         return True, None
 
-    def _add_to_index(self, image_metadata: ImageMetadata):
-        vectors = []
+    def _build_index(self):
+        logging.info("building index")
+        self._initialize_faiss_index()
+
+        self._add_to_index(self._image_metadata)
+        logging.info("vector index created successfully")
+
+    def _initialize_faiss_index(self):
+        dimension = EMBEDDING_MODEL_DIMENSION[self._embedding_model]
+        if self._metric == "inner_product":
+            self._faiss = faiss.index_factory(
+                dimension, self._index_type, faiss.METRIC_INNER_PRODUCT
+            )
+        else:
+            self._faiss = faiss.index_factory(dimension, self._index_type)
+
+    def _create_vector_metadata_from_image_metadata(
+        self, image_metadata: ImageMetadata
+    ):
+        vectors_metadata = []
         for idx, face in enumerate(image_metadata.detected_faces):
-            for vector in face:
-                if self._embedding_model == vector.model_name:
-                    vectors.append(
-                        ImageVectorMetadata(
-                            index=idx,
-                            embedding_model=self._embedding_model,
-                            image_hash_key=image_metadata.hash_key,
-                            embedding=vector.embedding,
-                        )
-                    )
+            vectors_metadata.append(
+                ImageVectorMetadata(
+                    index=idx,
+                    embedding_model=self._embedding_model,
+                    image_hash_key=image_metadata.hash_key,
+                    embedding=face.get_embedding(self._embedding_model),
+                )
+            )
+        return vectors_metadata
+
+    def _add_to_index(self, image_metadata: Union[ImageMetadata, List[ImageMetadata]]):
+        if not isinstance(image_metadata, list):
+            image_metadata = [image_metadata]
+        vectors_metadata = []
+        for metadata in image_metadata:
+            vectors_metadata.extend(
+                self._create_vector_metadata_from_image_metadata(metadata)
+            )
+        self._vector_index_metadata.extend(vectors_metadata)
+        self._add_vectors_to_index([meta.embedding for meta in vectors_metadata])
+        assert len(self._vector_index_metadata) == self._faiss.ntotal
+
+    def _add_vectors_to_index(self, vectors: List[np.ndarray]):
         if len(vectors) == 0:
             return
+        vectors = np.array(vectors, dtype=np.float32)
         if self._metric == "inner_product":
             vectors = normalize_vectors(vectors)
         self._faiss.add(vectors)
@@ -126,17 +118,17 @@ class ImageMetadataStore:
 
     def search(self, queries, nearest_neighbours=3):
         if self._faiss is None:
-            raise Exception("Make sure vectors indexing is enable")
+            raise Exception("Make sure vectors indexing is enabled")
         if self._faiss.ntotal == 0:
-            return [], []
+            return [[()] * nearest_neighbours] * len(queries)
 
         if not isinstance(queries, np.ndarray):
             queries = np.array(queries, dtype=np.float32)
-
         if self._metric == "inner_product":
             queries = normalize_vectors(queries)
 
-        indices, distances = self._faiss.search(queries, nearest_neighbours)
+        logging.info("queries shape: {}".format(queries.shape))
+        distances, indices = self._faiss.search(queries, nearest_neighbours)
         search_result = []
         for idx in range(len(distances)):
             results = []
@@ -163,7 +155,7 @@ class ImageMetadataStore:
             metadata = [
                 image_metadata.to_json() for image_metadata in self._image_metadata
             ]
-            _ = dump_json(metadata, self._metadata_path)
+            _ = dump_json(metadata, self._store_path)
             self._dump_in_progress = False
             logging.info("dumping ImageMetadataStore Successfully")
-            await asyncio.sleep(10)
+            await asyncio.sleep(self._dumping_interval)

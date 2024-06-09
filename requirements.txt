@@ -6,4 +6,5 @@ matplotlib~=3.8.1
 pillow~=10.3.0
 torch~=2.2.2
 tensorflow~=2.16.1
-faiss-cpu
+faiss-cpu==1.8.0
+requests==2.32.3

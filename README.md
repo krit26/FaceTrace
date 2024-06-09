@@ -1,6 +1,12 @@
 # FaceTrace
 Face Recognition Project
 
+### Things to know:
+- `<base_path>`: persisted directory which will maintain image dataset as well as the model weights 
+- `<base_path>/images/<user-id>/image.jpeg`: conventional path an image in dataset
+- `<base_path>/metadata.json`: metadata json contain all the precomputed image vectors and maintains all the metadata of an image in dataset
+- `<base_path>/weights/<model-name>/weights.h5`: this folder will contain the weights of the facenet models.
+  - copy the `/weights` folder from repo to the `<base_path>`
 
 ### API Contract
 Face Recognition API support following endpoints:

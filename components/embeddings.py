@@ -7,20 +7,22 @@ import numpy as np
 
 # Internal Imports
 from utils.utils import timeit
-from models import AbstractModel
 from components.detection import detection
 from models.model_holder import ModelHolder
 from utils.image_utils import load_image_using_pil
-from structures.image import FaceSegment, DetectedFace, FaceEmbeddings
+from models.embeddings import AbstractEmbeddingModel
+from structures.image import FaceSegment, DetectedFace
 
 
 @timeit
 def embeddings(
     images: Union[str, np.ndarray, List[str], List[np.ndarray]], model_name
-) -> List[FaceEmbeddings]:
+) -> List[np.ndarray]:
 
     try:
-        embedding_model: AbstractModel = ModelHolder.get_or_load_model(model_name)
+        embedding_model: AbstractEmbeddingModel = ModelHolder.get_or_load_model(
+            model_name
+        )
     except Exception as e:
         raise Exception(f"Error in loading {model_name} embedding model: {str(e)}")
 
@@ -28,11 +30,13 @@ def embeddings(
         images = [images]
 
     images = [load_image_using_pil(image) for image in images]
-    outputs = embedding_model.predict(images)
-    return [
-        FaceEmbeddings(model_name=model_name, embedding=np.array(output))
-        for output in outputs
-    ]
+
+    try:
+        outputs = embedding_model.predict(images)
+    except Exception as e:
+        raise Exception(f"Error in embedding model: {str(e)}")
+
+    return [np.array(output) for output in outputs]
 
 
 @timeit
@@ -46,6 +50,9 @@ def represent(
 
     if not isinstance(images, list):
         images = [images]
+
+    if len(images) == 0:
+        return []
 
     images = [load_image_using_pil(image) for image in images]
 
@@ -80,8 +87,6 @@ def represent(
     pointer = 0
     for detected_output in detected_outputs:
         for face in detected_output:
-            if face.embeddings is None:
-                face.embeddings = []
-            face.embeddings.append(embeds[pointer])
+            face.add_embedding(model_name=embedding_name, embedding=embeds[pointer])
             pointer += 1
     return detected_outputs

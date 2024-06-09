@@ -6,9 +6,9 @@ import numpy as np
 
 # Internal Imports
 from utils.utils import timeit
-from models import AbstractModel
 from models.model_holder import ModelHolder
 from utils.image_utils import load_image_using_pil
+from models.detectors import AbstractDetectionModel
 from structures.image import FaceSegment, DetectedFace
 from utils.image_utils import (
     expand_image_with_percentage,
@@ -26,7 +26,9 @@ def detection(
 ) -> List[List[DetectedFace]]:
 
     try:
-        detection_model: AbstractModel = ModelHolder.get_or_load_model(model_name)
+        detection_model: AbstractDetectionModel = ModelHolder.get_or_load_model(
+            model_name
+        )
     except Exception as e:
         raise Exception(f"Error in loading {model_name} face detection model: {str(e)}")
 
@@ -35,7 +37,10 @@ def detection(
 
     images = [load_image_using_pil(image) for image in images]
 
-    model_output: List[List[FaceSegment]] = detection_model.predict(images)
+    try:
+        model_output: List[List[FaceSegment]] = detection_model.predict(images)
+    except Exception as e:
+        raise Exception(f"Error in face detection model: {str(e)}")
 
     outputs = []
     for idx, detected_faces in enumerate(model_output):
@@ -68,7 +73,15 @@ def detection(
                 DetectedFace(
                     model_name=model_name,
                     image=detected_face,
-                    facial_segments=face,
+                    facial_segments=FaceSegment(
+                        x=x,
+                        y=y,
+                        w=w,
+                        h=h,
+                        left_eye=face.left_eye,
+                        right_eye=face.right_eye,
+                        confidence=face.confidence,
+                    ),
                     alignment=align,
                     expand_percentage=expand_percentage,
                 )

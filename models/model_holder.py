@@ -1,12 +1,14 @@
 # Standard Imports
 import time
+from typing import Union
 
 # Third Part Imports
 
 # Internal Imports
-from . import AbstractModel
 from models.detectors.fast_mtcnn import FastMtcnn
 from models.embeddings.facenet import FaceNet512
+from models.detectors import AbstractDetectionModel
+from models.embeddings import AbstractEmbeddingModel
 
 
 class ModelHolder(object):
@@ -17,9 +19,9 @@ class ModelHolder(object):
         if model_name not in ModelHolder._model_holder:
             if model_name not in globals():
                 raise Exception(f"{model_name} model does not exists")
-            ModelHolder._model_holder[model_name]: AbstractModel = globals()[
-                model_name
-            ](**kwargs)
+            ModelHolder._model_holder[model_name]: Union[
+                AbstractDetectionModel, AbstractEmbeddingModel
+            ] = globals()[model_name](**kwargs)
 
             if load:
                 ModelHolder._load_model(model_name, model_path)

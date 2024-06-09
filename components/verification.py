@@ -1,4 +1,5 @@
 # Standard Imports
+import logging
 from typing import Union, List, Tuple
 
 # Third Part Imports
@@ -9,6 +10,7 @@ from utils.utils import timeit
 from components.embeddings import represent
 from stores.store_holder import StoreHolder
 from stores.image_store import ImageMetadataStore
+from constants.constants import VERIFICATION_THRESHOLDS
 
 
 @timeit
@@ -68,10 +70,13 @@ def verification(
         else:
             results.append(
                 {
-                    "verified": distance >= 0.8,
+                    "verified": distance
+                    >= VERIFICATION_THRESHOLDS[embedding_name]["cosine_similarity"],
                     "distance": distance,
                     "metric": "cosine_similarity",
-                    "threshold": 0.8,
+                    "threshold": VERIFICATION_THRESHOLDS[embedding_name][
+                        "cosine_similarity"
+                    ],
                     "embedding_model": embedding_name,
                     "detector_model": detector_name,
                     "faces": {
@@ -113,7 +118,6 @@ def recognize(
             queries.append(face.get_embedding(embedding_name))
 
     search_results = image_store.search(queries, 1)
-
     outputs, pointer = [], 0
     for idx in range(len(images)):
         detected_faces = representations[idx]
@@ -122,21 +126,43 @@ def recognize(
         for idy, face in enumerate(detected_faces):
             req_result = search_result[idy]
             for _search in req_result:
-                if closest_distance is None or _search[1] >= closest_distance:
+                if len(_search) > 0 and (
+                    closest_distance is None or _search[1] >= closest_distance
+                ):
                     closest_distance = _search[1]
                     closest_match = _search[0]
         if closest_match is not None:
             outputs.append(
                 {
-                    "verified": closest_distance >= 0.8,
-                    "distance": closest_distance,
+                    "verified": (
+                        True
+                        if closest_distance
+                        >= VERIFICATION_THRESHOLDS[embedding_name]["cosine_similarity"]
+                        else False
+                    ),
+                    "distance": float(closest_distance),
                     "metric": "cosine_similarity",
-                    "threshold": 0.8,
+                    "threshold": VERIFICATION_THRESHOLDS[embedding_name][
+                        "cosine_similarity"
+                    ],
                     "embedding_model": embedding_name,
                     "detector_model": detector_name,
+                    "userId": image_store.get(closest_match.image_hash_key).user_id,
                 }
             )
         else:
-            outputs.append([])
+            outputs.append(
+                {
+                    "verified": False,
+                    "distance": 0.0,
+                    "metric": "cosine_similarity",
+                    "threshold": VERIFICATION_THRESHOLDS[embedding_name][
+                        "cosine_similarity"
+                    ],
+                    "embedding_model": embedding_name,
+                    "detector_model": detector_name,
+                    "userId": None,
+                }
+            )
         pointer += len(detected_faces)
     return outputs

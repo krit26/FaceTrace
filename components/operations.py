@@ -1,5 +1,6 @@
 # Standard Imports
 import os
+import logging
 from datetime import datetime
 from typing import Union, List
 
@@ -26,15 +27,12 @@ def add_images_to_image_store(
     align=False,
     expand_percentage=0,
 ):
-    try:
-        image_store: ImageMetadataStore = StoreHolder.get_store(store_name)
-    except Exception as e:
-        raise Exception(f"Error in getting {store_name} store: {str(e)}")
+    image_store: ImageMetadataStore = StoreHolder.get_store(store_name)
 
     if not isinstance(images, list):
         images = [images]
 
-    outputs = represent(
+    representations = represent(
         images=images,
         embedding_name=embedding_name,
         detector_name=detector_name,
@@ -43,26 +41,33 @@ def add_images_to_image_store(
     )
 
     image_metadata = []
-    for idx, outputs in enumerate(outputs):
-        image_path = export_image_using_pil(
-            images[idx],
-            os.path.join(
-                store_path,
-                "images",
-                user_ids[idx],
-                datetime.strftime(datetime.now(), "%Y-%m-%d_%H-%M-%S"),
-            ),
+    for idx, detected_face in enumerate(representations):
+        image_base_path = os.path.join(store_path, "images", user_ids[idx])
+
+        if not os.path.exists(image_base_path):
+            os.makedirs(image_base_path, exist_ok=True)
+        image_path = os.path.join(
+            image_base_path,
+            f"image_{datetime.strftime(datetime.now(), '%Y-%m-%d_%H-%M-%S')}.jpeg",
         )
+        image_path = export_image_using_pil(images[idx], image_path)
         image_metadata.append(
             ImageMetadata(
                 image_path=image_path,
                 user_id=user_ids[idx],
-                detected_faces=outputs[idx],
+                detected_faces=detected_face,
             )
         )
 
     results = []
     for metadata in image_metadata:
         is_add, errors = image_store.add(metadata)
+
+        # if image already exists delete it from the path
+        if is_add is False:
+            logging.error(f"Trying to add duplicate image for user {metadata.user_id}")
+            if os.path.exists(metadata.image_path):
+                os.remove(metadata.image_path)
+
         results.append({"success": is_add, "errors": errors})
     return results

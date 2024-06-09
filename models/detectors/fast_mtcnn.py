@@ -7,11 +7,11 @@ import numpy as np
 from facenet_pytorch import MTCNN as pt_fast_mtcnn
 
 # Internal Imports
-from models import AbstractModel
 from structures.image import FaceSegment
+from models.detectors import AbstractDetectionModel
 
 
-class FastMtcnn(AbstractModel):
+class FastMtcnn(AbstractDetectionModel):
 
     def __init__(self, **kwargs):
         self.device = kwargs.get(

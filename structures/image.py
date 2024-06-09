@@ -1,5 +1,6 @@
 # Standard Imports
-from typing import List
+import os
+from typing import List, Dict
 from dataclasses import dataclass, field
 
 # Third Party Imports
@@ -44,45 +45,22 @@ class FaceSegment:
 
 
 @dataclass
-class FaceEmbeddings:
-    model_name: str
-    embedding: np.ndarray
-
-    def __str__(self):
-        return f"{self.model_name}"
-
-    def to_json(self):
-        return {"model_name": self.model_name, "embedding": self.embedding.tolist()}
-
-    @staticmethod
-    def from_json(json_dict):
-        return FaceEmbeddings(
-            model_name=json_dict["model_name"],
-            embedding=np.array(json_dict["embedding"]),
-        )
-
-
-@dataclass
 class DetectedFace:
     model_name: str
     image: np.ndarray
     facial_segments: FaceSegment
     alignment: bool = False
     expand_percentage: float = 0
-    embeddings: List[FaceEmbeddings] = field(default_factory=list)
-
-    def __post_init__(self):
-        self.model_vs_embeddings = {}
-        if self.embeddings is not None:
-            self.model_vs_embeddings = {
-                embedding.model_name: embedding for embedding in self.embeddings
-            }
+    embeddings: Dict[str, np.ndarray] = field(default_factory=dict)
 
     def __str__(self):
         return f"{self.model_name}_{self.alignment}_{self.expand_percentage}"
 
     def get_embedding(self, model_name):
-        return self.model_vs_embeddings.get(model_name, None)
+        return self.embeddings.get(model_name, None)
+
+    def add_embedding(self, model_name: str, embedding: np.ndarray):
+        self.embeddings[model_name] = embedding
 
     def to_json(self):
         return {
@@ -91,7 +69,10 @@ class DetectedFace:
             "face_segments": self.facial_segments.to_json(),
             "alignment": self.alignment,
             "expand_percentage": self.expand_percentage,
-            "embeddings": [embedding.to_json() for embedding in self.embeddings],
+            "embeddings": {
+                model_name: embedding.tolist()
+                for model_name, embedding in self.embeddings.items()
+            },
         }
 
     @staticmethod
@@ -102,10 +83,10 @@ class DetectedFace:
             facial_segments=FaceSegment.from_json(json_dict["face_segments"]),
             alignment=json_dict["alignment"],
             expand_percentage=json_dict["expand_percentage"],
-            embeddings=[
-                FaceEmbeddings.from_json(embedding)
-                for embedding in json_dict["embeddings"]
-            ],
+            embeddings={
+                model_name: np.array(embedding)
+                for model_name, embedding in json_dict["embeddings"].items()
+            },
         )
 
 
@@ -125,16 +106,22 @@ class ImageMetadata:
 
     def to_json(self):
         return {
-            "image_path": self._image_path,
+            "image_path": "/".join(
+                self._image_path.split("/")[-3:]
+            ),  # relative path "images/<user_id>/image.jpeg"
             "user_id": self._user_id,
             "image_hash": self._image_hash,
             "detected_faces": [face.to_json() for face in self._detected_faces],
         }
 
     @staticmethod
-    def from_json(metadata):
+    def from_json(metadata, base_path=None):
         return ImageMetadata(
-            image_path=metadata["image_path"],
+            image_path=(
+                os.path.join(base_path, metadata["image_path"])
+                if base_path
+                else metadata["image_path"]
+            ),
             user_id=metadata["user_id"],
             hash_key=metadata.get("image_hash", None),
             detected_faces=[

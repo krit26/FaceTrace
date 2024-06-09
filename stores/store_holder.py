@@ -2,10 +2,10 @@
 import time
 import logging
 
-# Third Part Imports
+# Third Party Imports
 
 # Internal Imports
-from stores.builder import ImageMetadataStoreBuilder, ImageMetadataVectorStoreBuilder
+from stores.builder import ImageMetadataStoreBuilder
 
 
 class StoreHolder(object):
@@ -20,10 +20,10 @@ class StoreHolder(object):
             logging.info("kwargs: {}".format(kwargs))
             builder = globals()[builder_name](store_path, **kwargs)
             StoreHolder._store_holder[store_name] = builder.load(store_path, **kwargs)
-            StoreHolder._last_load_time[builder_name] = time.time()
+            StoreHolder._last_load_time[store_name] = time.time()
 
         return StoreHolder._store_holder[store_name]
 
     @staticmethod
     def get_store(store_name):
-        StoreHolder._store_holder.get(store_name, None)
+        return StoreHolder._store_holder.get(store_name, None)

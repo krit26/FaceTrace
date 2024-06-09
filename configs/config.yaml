@@ -1,0 +1,25 @@
+detector_model:
+  name: "FastMtcnn"
+  model_path: null
+  arguments:
+    align: True
+    expand_percentage: 0
+
+embedding_model:
+  name: "FaceNet512"
+  model_path: "/Users/kritpatel/Desktop/myMac/projects/face_recognition/datasets/weights/FaceNet512/weights.h5"
+
+
+image_store:
+  store_name: "ImageMetadataStore"
+  builder_name: "ImageMetadataStoreBuilder"
+  path: "/Users/kritpatel/Desktop/myMac/projects/face_recognition/datasets/"
+  arguments:
+    vector_indexing: true
+    indexing_kwargs:
+      index_type: "Flat"
+      metric: "inner_product"
+      embedding_model: "FaceNet512"
+    dumping_kwargs:
+      interval: 120
+

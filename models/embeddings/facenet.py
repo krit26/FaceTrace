@@ -1,4 +1,6 @@
 # Standard Imports
+import logging
+import os
 import numpy as np
 from typing import List
 
@@ -33,8 +35,15 @@ class FaceNet512(AbstractEmbeddingModel):
         self.input_shape = (160, 160)
         self.output_shape = 512
 
-    def load(self, model_path):
+    def load(self, model_path=None):
         self.model = InceptionResNetV1(dimension=512)
+        if model_path is None:
+            model_path = os.path.join(
+                os.path.dirname(__file__), "../../weights/face_net/weights_512.h5"
+            )
+            logging.info(
+                f"Loading pretrained face net 512 model weights from {model_path}"
+            )
         self.model.load_weights(model_path)
 
     def predict(self, inputs: List[np.ndarray]) -> List[np.ndarray]:
@@ -64,8 +73,15 @@ class FaceNet128(FaceNet512):
         self.input_shape = (160, 160)
         self.output_shape = 128
 
-    def load(self, model_path):
+    def load(self, model_path=None):
         self.model = InceptionResNetV1(dimension=128)
+        if model_path is None:
+            model_path = os.path.join(
+                os.path.dirname(__file__), "../../weights/face_net/weights_128.h5"
+            )
+            logging.info(
+                f"Loading pretrained face net 128 model weights from {model_path}"
+            )
         self.model.load_weights(model_path)
 
 

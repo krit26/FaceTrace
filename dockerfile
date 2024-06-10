@@ -1,8 +1,11 @@
 FROM python:3.9
 
+ENV TF_USE_LEGACY_KERAS=1 \
+    TF_CPP_MIN_LOG_LEVEL=3 \
+    KMP_DUPLICATE_LIB_OK=TRUE
+
 RUN apt-get -y update \
     && apt-get install -y libgl1-mesa-glx
-
 
 RUN mkdir -p /FaceTrace
 

@@ -9,7 +9,7 @@ import numpy as np
 
 class AbstractEmbeddingModel:
 
-    def load(self, model_path):
+    def load(self, model_path=None):
         raise NotImplementedError
 
     def predict(self, inputs: List[np.ndarray]) -> List[np.ndarray]:

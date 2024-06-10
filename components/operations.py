@@ -42,7 +42,7 @@ def add_images_to_image_store(
 
     image_metadata = []
     for idx, detected_face in enumerate(representations):
-        image_base_path = os.path.join(store_path, "images", user_ids[idx])
+        image_base_path = os.path.join(store_path, "database", "images", user_ids[idx])
 
         if not os.path.exists(image_base_path):
             os.makedirs(image_base_path, exist_ok=True)

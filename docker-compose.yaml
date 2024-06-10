@@ -1,7 +1,7 @@
 version: '3'
 services:
-  facetrace:
-    image: "<name>:tag"
+  face-trace:
+    image: "image_name:tag"
     ports:
       - 8000:8000
     environment:

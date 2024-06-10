@@ -2,11 +2,23 @@
 Face Recognition Project
 
 ### Things to know:
-- `<base_path>`: persisted directory which will maintain image dataset as well as the model weights 
-- `<base_path>/images/<user-id>/image.jpeg`: conventional path an image in dataset
-- `<base_path>/metadata.json`: metadata json contain all the precomputed image vectors and maintains all the metadata of an image in dataset
-- `<base_path>/weights/<model-name>/weights.h5`: this folder will contain the weights of the facenet models.
-  - copy the `/weights` folder from repo to the `<base_path>`
+
+`<base_path>`: persisted directory which will maintain image database
+
+`<base_path>/database/metadata.json`: metadata json contain all the precomputed image vectors and maintains all the metadata of an image in database.
+
+following the directory structure of image database:
+```bash
+<base_path>
+├── database
+│   ├── metadata.json
+│   ├── images
+│   │   ├── user_01
+│   │   │   ├── image_{date1}_{time1}.jpeg
+│   │   │   ├── image_{date2}_{time2}.jpeg
+│   │   ├── user_02
+│   │   │   ├── image_{date1}_{time1}.jpeg
+```
 
 ### Docker setup:
 - create docker image:

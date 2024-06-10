@@ -21,7 +21,7 @@ class ImageMetadataStoreBuilder(AbstractStoreBuilder):
         self.store_path = store_path
 
     def load(self, base_path: str, **kwargs):
-        self.store_path = os.path.join(base_path, "metadata.json")
+        self.store_path = os.path.join(base_path, "database", "metadata.json")
         kwargs.update({"store_path": self.store_path})
 
         # When base path doesn't exist
@@ -53,7 +53,9 @@ class ImageMetadataStoreBuilder(AbstractStoreBuilder):
                     image_metadata.append(ImageMetadata.from_json(meta, base_path))
 
         # Following logics check if their any image not present in metadata
-        expected_images_path = os.path.join(base_path, "images", "*", "*.jpeg")
+        expected_images_path = os.path.join(
+            base_path, "database", "images", "*", "*.jpeg"
+        )
         image_paths = glob.glob(expected_images_path)
         if len(image_paths) == 0:
             logging.warning("No images found in {}".format(expected_images_path))

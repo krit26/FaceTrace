@@ -1,19 +1,18 @@
 detector_model:
   name: "FastMtcnn"
-  model_path: null
+  model_path: null # pretrained model weights from /weights
   arguments:
     align: True
     expand_percentage: 0
 
 embedding_model:
   name: "FaceNet512"
-  model_path: "/Users/kritpatel/Desktop/myMac/projects/face_recognition/datasets/weights/FaceNet512/weights.h5"
-
+  model_path: null  # pretrained model weights from /weights
 
 image_store:
   store_name: "ImageMetadataStore"
   builder_name: "ImageMetadataStoreBuilder"
-  path: "/Users/kritpatel/Desktop/myMac/projects/face_recognition/datasets/"
+  path: "<path/to/image_database>"
   arguments:
     vector_indexing: true
     indexing_kwargs:

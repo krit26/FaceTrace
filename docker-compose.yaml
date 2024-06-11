@@ -1,10 +1,26 @@
-version: '3'
 services:
   face-trace:
-    image: "image_name:tag"
+    image: ${DOCKER_TAG}
+    command: ["python", "app.py"]
     ports:
       - 8000:8000
     environment:
-      - APP_CONFIG_PATH=<path>/config.yaml
+      - APP_CONFIG_PATH=${APP_CONFIG_PATH}
+      - DATABASE_PATH=${DATABASE_PATH}
     volumes:
-      - <host_path>:<docker_path>
+      - ${HOST_PATH}:${MOUNT_PATH}
+    env_file:
+      - ./.env
+
+  face-trace-playground:
+    image: ${DOCKER_TAG}
+    command: ["python", "-m", "playground.app"]
+    ports:
+      - 8001:8001
+    environment:
+      - DATABASE_PATH=${DATABASE_PATH}
+      - APP_URL=${API_URL}
+    volumes:
+      - ${HOST_PATH}:${MOUNT_PATH}
+    env_file:
+      - ./.env

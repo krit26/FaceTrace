@@ -32,6 +32,8 @@ class Configuration:
 
     image_store: StoreConfig = None
 
+    database_path: str = None
+
 
 def create_configurations() -> Configuration:
 
@@ -46,6 +48,7 @@ def create_configurations() -> Configuration:
             "image_store": StoreConfig(**config.get("image_store", {})),
             "detector_model": ModelConfig(**config.get("detector_model", {})),
             "embedding_model": ModelConfig(**config.get("embedding_model", {})),
+            "database_path": os.environ.get("DATABASE_PATH", None),
         }
     )
     return config

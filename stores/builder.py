@@ -12,6 +12,7 @@ from structures.image import ImageMetadata
 from components.embeddings import represent
 from configurations.config import app_config
 from stores.image_store import ImageMetadataStore
+from constants.constants import DEFAULT_DATABASE_PATH
 
 
 class ImageMetadataStoreBuilder(AbstractStoreBuilder):
@@ -21,6 +22,15 @@ class ImageMetadataStoreBuilder(AbstractStoreBuilder):
         self.store_path = store_path
 
     def load(self, base_path: str, **kwargs):
+        if base_path is None:
+            logging.warning(
+                f"Database Path is None, using {DEFAULT_DATABASE_PATH} as temporary database storage"
+            )
+            base_path = DEFAULT_DATABASE_PATH
+
+        if not os.path.exists(os.path.join(base_path, "database")):
+            os.makedirs(os.path.join(base_path, "database"), exist_ok=True)
+
         self.store_path = os.path.join(base_path, "database", "metadata.json")
         kwargs.update({"store_path": self.store_path})
 
@@ -44,13 +54,15 @@ class ImageMetadataStoreBuilder(AbstractStoreBuilder):
                 if not isinstance(meta, dict):
                     logging.warning("image metadata should be a dictionary")
                     continue
-                metadata = ImageMetadata.from_json(meta, base_path)
+                metadata = ImageMetadata.from_json(
+                    meta, os.path.join(base_path, "database")
+                )
                 if not os.path.exists(metadata.image_path):
                     logging.warning(
                         "image path {} does not exists. please check if the base path is correct"
                     )
                 else:
-                    image_metadata.append(ImageMetadata.from_json(meta, base_path))
+                    image_metadata.append(metadata)
 
         # Following logics check if their any image not present in metadata
         expected_images_path = os.path.join(

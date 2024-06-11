@@ -12,8 +12,12 @@ import numpy as np
 # Internal Imports
 from utils.utils import dump_json
 from utils.utils import normalize_vectors
-from constants.constants import EMBEDDING_MODEL_DIMENSION
-from structures.image import ImageMetadata, ImageVectorMetadata
+from constants.constants import (
+    EMBEDDING_MODEL_DIMENSION,
+    COSINE_SIMILARITY,
+    EUCLIDEAN_L2,
+)
+from structures.image import ImageMetadata, ImageVectorMetadata, FaissSearchResult
 
 
 class ImageMetadataStore:
@@ -28,7 +32,7 @@ class ImageMetadataStore:
         self.vector_indexing = kwargs.get("vector_indexing", False)
         _indexing_kwargs = kwargs.get("indexing_kwargs", {})
         self._index_type = _indexing_kwargs.get("index_type", "Flat")
-        self._metric = _indexing_kwargs.get("metric", "inner_product")
+        self._metric = _indexing_kwargs.get("metric", COSINE_SIMILARITY)
         self._embedding_model = _indexing_kwargs.get("embedding_model", "FaceNet512")
         self._vector_index_metadata = []
         self._faiss = None
@@ -73,7 +77,7 @@ class ImageMetadataStore:
 
     def _initialize_faiss_index(self):
         dimension = EMBEDDING_MODEL_DIMENSION[self._embedding_model]
-        if self._metric == "inner_product":
+        if self._metric == COSINE_SIMILARITY:
             self._faiss = faiss.index_factory(
                 dimension, self._index_type, faiss.METRIC_INNER_PRODUCT
             )
@@ -111,7 +115,7 @@ class ImageMetadataStore:
         if len(vectors) == 0:
             return
         vectors = np.array(vectors, dtype=np.float32)
-        if self._metric == "inner_product":
+        if self._metric in [COSINE_SIMILARITY]:
             vectors = normalize_vectors(vectors)
         self._faiss.add(vectors)
         logging.info("Faiss index size: {}".format(self._faiss.ntotal))
@@ -120,20 +124,27 @@ class ImageMetadataStore:
         if self._faiss is None:
             raise Exception("Make sure vectors indexing is enabled")
         if self._faiss.ntotal == 0:
-            return [[()] * nearest_neighbours] * len(queries)
+            return [[None] * nearest_neighbours] * len(queries)
 
         if not isinstance(queries, np.ndarray):
             queries = np.array(queries, dtype=np.float32)
-        if self._metric == "inner_product":
+
+        if self._metric in [COSINE_SIMILARITY]:
             queries = normalize_vectors(queries)
 
         logging.info("queries shape: {}".format(queries.shape))
         distances, indices = self._faiss.search(queries, nearest_neighbours)
         search_result = []
-        for idx in range(len(distances)):
+        for idx in range(len(queries)):
             results = []
             for index, dist in zip(indices[idx], distances[idx]):
-                results.append((self._vector_index_metadata[index], dist))
+                results.append(
+                    FaissSearchResult(
+                        key=self._vector_index_metadata[index],
+                        distance=dist,
+                        metric_type=self._metric,
+                    )
+                )
             search_result.append(results)
         return search_result
 

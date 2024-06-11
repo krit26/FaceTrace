@@ -1,7 +1,11 @@
-FACE_DETECTOR = "face_detector"
-FACE_EMBEDDING = "face_embedding"
-USERS_METADATA = "users_metadata"
+COSINE_SIMILARITY = "cosine_similarity"
+EUCLIDEAN_L2 = "euclidean_l2"
+
 
 EMBEDDING_MODEL_DIMENSION = {"FaceNet512": 512, "FaceNet128": 128}
+VERIFICATION_THRESHOLDS = {
+    "FaceNet512": {COSINE_SIMILARITY: 0.70, EUCLIDEAN_L2: 23.56},
+    "FaceNet128": {COSINE_SIMILARITY: 0.70, EUCLIDEAN_L2: 23.56},
+}
 
-VERIFICATION_THRESHOLDS = {"FaceNet512": {"cosine_similarity": 0.70}}
+DEFAULT_DATABASE_PATH = "/tmp"

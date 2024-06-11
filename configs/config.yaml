@@ -12,12 +12,11 @@ embedding_model:
 image_store:
   store_name: "ImageMetadataStore"
   builder_name: "ImageMetadataStoreBuilder"
-  path: "<path/to/image_database>"
   arguments:
     vector_indexing: true
     indexing_kwargs:
       index_type: "Flat"
-      metric: "inner_product"
+      metric: "cosine_similarity"
       embedding_model: "FaceNet512"
     dumping_kwargs:
       interval: 120

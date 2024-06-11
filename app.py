@@ -56,12 +56,17 @@ class VerifyHandler(BaseHandler):
 
     async def _process_payload(self, payloads):
         try:
+            metric = app_config.image_store.arguments.get("indexing_kwargs", {}).get(
+                "metric", "cosine_similarity"
+            )
             outputs = verification(
                 image_tuples=[
-                    (payload["image1"], payload["image2"]) for payload in payloads
+                    (payload["image1"], payload["image2"])
+                    for payload in payloads["payloads"]
                 ],
                 embedding_name=app_config.embedding_model.name,
                 detector_name=app_config.detector_model.name,
+                metric=metric,
                 **app_config.detector_model.arguments,
             )
         except Exception as e:
@@ -172,7 +177,7 @@ def app_initializer():
             _ = StoreHolder.get_or_load_store(
                 store_name=app_config.image_store.store_name,
                 builder_name=app_config.image_store.builder_name,
-                store_path=app_config.image_store.path,
+                store_path=app_config.database_path,
                 **app_config.image_store.arguments,
             )
             logging.info("Successfully loaded image metadata")

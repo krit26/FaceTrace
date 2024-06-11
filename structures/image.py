@@ -1,6 +1,6 @@
 # Standard Imports
 import os
-from typing import List, Dict
+from typing import List, Dict, Any
 from dataclasses import dataclass, field
 
 # Third Party Imports
@@ -160,3 +160,10 @@ class ImageVectorMetadata:
 
     def __str__(self):
         return f"{self.image_hash_key}_{self.index}_{self.embedding_model}"
+
+
+@dataclass
+class FaissSearchResult:
+    key: Any
+    metric_type: str
+    distance: float = 0.0

@@ -9,8 +9,8 @@ import numpy as np
 from utils.utils import timeit
 from components.embeddings import represent
 from stores.store_holder import StoreHolder
-from stores.image_store import ImageMetadataStore
-from constants.constants import VERIFICATION_THRESHOLDS
+from constants.constants import VERIFICATION_THRESHOLDS, COSINE_SIMILARITY, EUCLIDEAN_L2
+from stores.image_store import ImageMetadataStore, FaissSearchResult
 
 
 @timeit
@@ -23,6 +23,7 @@ def verification(
     ],
     embedding_name,
     detector_name=None,
+    metric="cosine_similarity",
     align=False,
     expand_percentage=0,
 ):
@@ -53,16 +54,21 @@ def verification(
         except Exception as e:
             raise Exception("Error in generating embedding for image1")
 
-        matching_faces, distance = None, None
+        matching_faces, optimal_distance = None, None
         for face1 in faces1:
             for face2 in faces2:
                 embedding1 = face1.get_embedding(embedding_name)
                 embedding2 = face2.get_embedding(embedding_name)
-                cosine_similarity = np.dot(embedding1, embedding2) / (
-                    np.linalg.norm(embedding1) * np.linalg.norm(embedding2)
-                )
-                if distance is None or cosine_similarity > distance:
-                    distance = cosine_similarity
+                distance = get_distance(embedding1, embedding2, metric)
+                if distance and (
+                    optimal_distance is None
+                    or verify_distance(
+                        distance,
+                        VERIFICATION_THRESHOLDS[embedding_name][metric],
+                        metric,
+                    )
+                ):
+                    optimal_distance = distance
                     matching_faces = (face1, face2)
 
         if matching_faces is None:
@@ -70,13 +76,14 @@ def verification(
         else:
             results.append(
                 {
-                    "verified": distance
-                    >= VERIFICATION_THRESHOLDS[embedding_name]["cosine_similarity"],
-                    "distance": distance,
+                    "verified": verify_distance(
+                        optimal_distance,
+                        VERIFICATION_THRESHOLDS[embedding_name][metric],
+                        metric,
+                    ),
+                    "distance": round(optimal_distance, 2),
                     "metric": "cosine_similarity",
-                    "threshold": VERIFICATION_THRESHOLDS[embedding_name][
-                        "cosine_similarity"
-                    ],
+                    "threshold": VERIFICATION_THRESHOLDS[embedding_name][metric],
                     "embedding_model": embedding_name,
                     "detector_model": detector_name,
                     "faces": {
@@ -117,48 +124,52 @@ def recognize(
         for face in detected_faces:
             queries.append(face.get_embedding(embedding_name))
 
-    search_results = image_store.search(queries, 1)
+    search_results: List[List[FaissSearchResult]] = image_store.search(queries, 1)
     outputs, pointer = [], 0
     for idx in range(len(images)):
         detected_faces = representations[idx]
         search_result = search_results[pointer : pointer + len(detected_faces)]
-        closest_match, closest_distance = None, None
+        closest_result = None
         for idy, face in enumerate(detected_faces):
             req_result = search_result[idy]
             for _search in req_result:
-                if len(_search) > 0 and (
-                    closest_distance is None or _search[1] >= closest_distance
+                if _search and (
+                    closest_result is None
+                    or verify_distance(
+                        _search.distance, closest_result.distance, _search.metric_type
+                    )
                 ):
-                    closest_distance = _search[1]
-                    closest_match = _search[0]
-        if closest_match is not None:
-            outputs.append(
-                {
-                    "verified": (
-                        True
-                        if closest_distance
-                        >= VERIFICATION_THRESHOLDS[embedding_name]["cosine_similarity"]
-                        else False
-                    ),
-                    "distance": float(closest_distance),
-                    "metric": "cosine_similarity",
-                    "threshold": VERIFICATION_THRESHOLDS[embedding_name][
-                        "cosine_similarity"
-                    ],
-                    "embedding_model": embedding_name,
-                    "detector_model": detector_name,
-                    "userId": image_store.get(closest_match.image_hash_key).user_id,
-                }
-            )
+                    closest_result = _search
+
+        if closest_result is not None:
+            output = {
+                "verified": verify_distance(
+                    closest_result.distance,
+                    VERIFICATION_THRESHOLDS[embedding_name][closest_result.metric_type],
+                    closest_result.metric_type,
+                ),
+                "distance": round(float(closest_result.distance), 2),
+                "metric": closest_result.metric_type,
+                "threshold": VERIFICATION_THRESHOLDS[embedding_name][
+                    closest_result.metric_type
+                ],
+                "embedding_model": embedding_name,
+                "detector_model": detector_name,
+            }
+            if output["verified"]:
+                output["userId"] = image_store.get(
+                    closest_result.key.image_hash_key
+                ).user_id
+            else:
+                output["userId"] = None
+            outputs.append(output)
         else:
             outputs.append(
                 {
                     "verified": False,
                     "distance": 0.0,
-                    "metric": "cosine_similarity",
-                    "threshold": VERIFICATION_THRESHOLDS[embedding_name][
-                        "cosine_similarity"
-                    ],
+                    "metric": None,
+                    "threshold": None,
                     "embedding_model": embedding_name,
                     "detector_model": detector_name,
                     "userId": None,
@@ -166,3 +177,44 @@ def recognize(
             )
         pointer += len(detected_faces)
     return outputs
+
+
+def verify_distance(distance, threshold, metric_type):
+    if distance is None:
+        return False
+    if metric_type == "cosine_similarity":
+        if distance >= threshold:
+            return True
+        return False
+    if distance < threshold:
+        return True
+    return False
+
+
+def get_distance(vector1, vector2, metric_type):
+    if metric_type == COSINE_SIMILARITY:
+        return cosine_similarity(vector1, vector2)
+    if metric_type == EUCLIDEAN_L2:
+        return euclidean_distance(vector1, vector2)
+    return None
+
+
+def cosine_similarity(vector1, vector2):
+    if not isinstance(vector1, np.ndarray):
+        vector1 = np.array(vector1)
+    if not isinstance(vector1, np.ndarray):
+        vector2 = np.array(vector2)
+    distance = np.dot(vector1, vector2) / (
+        np.linalg.norm(vector1) * np.linalg.norm(vector2)
+    )
+    return distance
+
+
+def euclidean_distance(vector1, vector2):
+    if not isinstance(vector1, np.ndarray):
+        vector1 = np.array(vector1)
+    if not isinstance(vector2, np.ndarray):
+        vector2 = np.array(vector2)
+    difference = vector1 - vector2
+    distance = np.sqrt(np.sum(np.multiply(difference, difference)))
+    return distance

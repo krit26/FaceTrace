@@ -18,6 +18,7 @@ COPY ./stores /FaceTrace/stores
 COPY ./structures /FaceTrace/structures
 COPY ./utils /FaceTrace/utils
 COPY ./weights /FaceTrace/weights
+COPY ./playground /FaceTrace/playground
 COPY ./requirements.txt /FaceTrace/requirements.txt
 COPY ./app.py /FaceTrace/app.py
 COPY ./README.md /FaceTrace/README.md

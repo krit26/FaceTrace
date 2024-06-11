@@ -14,7 +14,7 @@ services:
   face-trace-playground:
     image: ${DOCKER_TAG}
     ports:
-      - 8000:8001
+      - 8001:8001
     environment:
       - DATABASE_PATH=${DATABASE_PATH}
       - APP_URL=${API_URL}

@@ -42,7 +42,7 @@ class AddHandler(BaseHandler):
                 images=[payload["image"] for payload in payloads["payloads"]],
                 user_ids=[payload["userId"] for payload in payloads["payloads"]],
                 store_name=app_config.image_store.store_name,
-                store_path=app_config.image_store.path,
+                store_path=app_config.database_path,
                 embedding_name=app_config.embedding_model.name,
                 detector_name=app_config.detector_model.name,
                 **app_config.detector_model.arguments,

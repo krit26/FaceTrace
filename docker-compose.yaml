@@ -1,24 +1,24 @@
-version: '3'
 services:
   face-trace:
-    image: "${DOCKER_TAG}"
+    image: ${DOCKER_TAG}
     ports:
       - 8000:8000
     environment:
-      - APP_CONFIG_PATH="${APP_CONFIG_PATH}"
-      - DATABASE_PATH="${DATABASE_PATH}"
+      - APP_CONFIG_PATH=${APP_CONFIG_PATH}
+      - DATABASE_PATH=${DATABASE_PATH}
     volumes:
-      - "${HOST_PATH}":"${MOUNT_PATH}"
+      - ${HOST_PATH}:${MOUNT_PATH}
     env_file:
       - ./.env
 
   face-trace-playground:
-    image: "${DOCKER_TAG}"
+    image: ${DOCKER_TAG}
     ports:
       - 8000:8001
     environment:
-      - DATABASE_PATH="${DATABASE_PATH}"
+      - DATABASE_PATH=${DATABASE_PATH}
+      - APP_URL=${API_URL}
     volumes:
-      - "${HOST_PATH}": "${MOUNT_PATH}"
+      - "${HOST_PATH}": ${MOUNT_PATH}
     env_file:
       - ./.env

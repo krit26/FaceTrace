@@ -12,6 +12,7 @@ from structures.image import ImageMetadata
 from components.embeddings import represent
 from configurations.config import app_config
 from stores.image_store import ImageMetadataStore
+from constants.constants import DEFAULT_DATABASE_PATH
 
 
 class ImageMetadataStoreBuilder(AbstractStoreBuilder):
@@ -23,9 +24,9 @@ class ImageMetadataStoreBuilder(AbstractStoreBuilder):
     def load(self, base_path: str, **kwargs):
         if base_path is None:
             logging.warning(
-                "Database Path is None, using /tmp as temporary database storage"
+                f"Database Path is None, using {DEFAULT_DATABASE_PATH} as temporary database storage"
             )
-            base_path = "/tmp"
+            base_path = DEFAULT_DATABASE_PATH
 
         if not os.path.exists(os.path.join(base_path, "database")):
             os.makedirs(os.path.join(base_path, "database"), exist_ok=True)

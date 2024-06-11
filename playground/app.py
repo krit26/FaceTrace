@@ -16,6 +16,7 @@ from utils.image_utils import export_image_using_pil
 
 
 TMP = "/tmp"
+API_URL = os.environ.get("API_URL", None)
 
 
 def http_call(url, payload):
@@ -70,9 +71,7 @@ def draw_bounding_boxes(image, detected_faces: List[FaceSegment]):
 def detect_face(image):
     image_path = os.path.join(TMP, "image.jpeg")
     export_image_using_pil(np.array(image), image_path)
-    response = http_call(
-        "http://localhost:8000/face-detect", payload=create_payload(image_path)
-    )
+    response = http_call(f"{API_URL}/face-detect", payload=create_payload(image_path))
     if "results" in response:
         results = response.get("results", [])
         if len(results) > 0:
@@ -91,7 +90,7 @@ def verify_face(image1, image2):
     image2_path = os.path.join(TMP, "image2.jpeg")
     export_image_using_pil(np.array(image2), image2_path)
     response = http_call(
-        "http://localhost:8000/verify",
+        f"{API_URL}/verify",
         payload=create_face_verification_payload(image1_path, image2_path),
     )
 
@@ -118,9 +117,7 @@ def verify_face(image1, image2):
 def recognize_face(image):
     image_path = os.path.join(TMP, "image.jpeg")
     export_image_using_pil(np.array(image), image_path)
-    response = http_call(
-        "http://localhost:8000/recognize", payload=create_payload(image_path)
-    )
+    response = http_call(f"{API_URL}/recognize", payload=create_payload(image_path))
     if os.path.exists(image_path):
         os.remove(image_path)
     return response
@@ -130,7 +127,7 @@ def add_image(image, user_id):
     image_path = os.path.join(TMP, "image.jpeg")
     export_image_using_pil(np.array(image), image_path)
     response = http_call(
-        "http://localhost:8000/add",
+        f"{API_URL}/add",
         payload=create_add_face_payload(image_path, user_id),
     )
     if os.path.exists(image_path):

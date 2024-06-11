@@ -14,10 +14,10 @@ following the directory structure of image database:
 │   ├── metadata.json
 │   ├── images
 │   │   ├── user_01
-│   │   │   ├── image_{date1}_{time1}.jpeg
-│   │   │   ├── image_{date2}_{time2}.jpeg
+│   │   │   ├── image_01.jpeg
+│   │   │   ├── image_02.jpeg
 │   │   ├── user_02
-│   │   │   ├── image_{date1}_{time1}.jpeg
+│   │   │   ├── image_01.jpeg
 ```
 
 ### Docker setup:

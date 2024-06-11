@@ -1,6 +1,7 @@
 services:
   face-trace:
     image: ${DOCKER_TAG}
+    command: ["python", "app.py"]
     ports:
       - 8000:8000
     environment:
@@ -13,6 +14,7 @@ services:
 
   face-trace-playground:
     image: ${DOCKER_TAG}
+    command: ["python", "-m", "playground.app"]
     ports:
       - 8001:8001
     environment:

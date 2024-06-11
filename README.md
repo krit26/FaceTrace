@@ -1,38 +1,62 @@
 # FaceTrace
 Face Recognition Project
 
-### Things to know:
+### How to run service via docker compose:
 
-`<base_path>`: persisted directory which will maintain image database
+---
+- clone the repo in some local directory
+- creating docker image:
+  ```
+  cd /FaceTrace
+  docker build -t facetrace/facenet:latest -f ./dockerfile .
+  ```
+- create `.env` file in the same directory where `docker-compose.yaml` is present.
+  one need to set following environment variable in `.env` file
+  ```
+  DOCKER_TAG=facetrace/facenet:latest
 
-`<base_path>/database/metadata.json`: metadata json contain all the precomputed image vectors and maintains all the metadata of an image in database.
+  DATABASE_PATH=<path/to/image database>
 
-following the directory structure of image database:
-```bash
-<base_path>
-├── database
-│   ├── metadata.json
-│   ├── images
-│   │   ├── user_01
-│   │   │   ├── image_01.jpeg
-│   │   │   ├── image_02.jpeg
-│   │   ├── user_02
-│   │   │   ├── image_01.jpeg
-```
+  APP_CONFIG_PATH=<path/to/app config.yaml>
 
-### Docker setup:
-- create docker image:
-    ```
-    cd /FaceTrace
-    docker build -t facetrace/facenet:master-09JUNE2024-v0 -f ./dockerfile .
-    ```
-- Run service:
-    ```
-    docker run -itd -v <host_path>:<container_path> -e APP_CONFIG_PATH=<path_to_config.yaml> facetrace/facenet:master-09JUNE2024-v0
-    ```
+  HOST_PATH=<host file system path>
 
+  MOUNT_PATH=<container file system path>
+
+  API_URL=<URL of the API, in case one want to use playground>
+  ```
+  Following the meaning of each environment variable
+
+   - `DOCKER_TAG`: docker image which was built in second step.
+   - `DATABASE_PATH`: container file system path where images and its related metadata will be stored
+     
+      - Following will be structure of the database
+      ```bash
+      <DATABASE_PATH>
+      ├── database
+      │   ├── metadata.json
+      │   ├── images
+      │   │   ├── user_01
+      │   │   │   ├── image_01.jpeg
+      │   │   │   ├── image_02.jpeg
+      │   │   ├── user_02
+      │   │   │   ├── image_01.jpeg
+      ```
+     `metadata.json`: this file is optional in case if it is missing. This file is used by the index 
+      to store the precalculated embeddings.
+      if when service is started, and it find images folder in database folder, then it will automatically
+      calculate the embeddings of images and create `metadata.json` by itself
+-  Once `./env` is created, then just run `docker-composer up`
+
+Once all the service are up, once can access the playground UI to make sample curls to the service.
+example:
+
+![img.png](img.png)
 
 ### API Contract
+
+---
+
 Face Recognition API support following endpoints:
 1. `/face-detect`: detects the bounding box of facial area in the input image
 2. `/represent`: detects the facial areas input image and its corresponding embeddings

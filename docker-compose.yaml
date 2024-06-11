@@ -19,6 +19,6 @@ services:
       - DATABASE_PATH=${DATABASE_PATH}
       - APP_URL=${API_URL}
     volumes:
-      - "${HOST_PATH}": ${MOUNT_PATH}
+      - ${HOST_PATH}:${MOUNT_PATH}
     env_file:
       - ./.env

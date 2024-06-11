@@ -219,4 +219,4 @@ with gr.Blocks() as demo:
             json_response = gr.JSON(label="API Response")
 
 
-demo.launch(debug=True, server_port=8001)
+demo.launch(debug=True, server_name="0.0.0.0", server_port=8001, share=False)

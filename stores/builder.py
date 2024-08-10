@@ -65,10 +65,11 @@ class ImageMetadataStoreBuilder(AbstractStoreBuilder):
                     image_metadata.append(metadata)
 
         # Following logics check if their any image not present in metadata
-        expected_images_path = os.path.join(
-            base_path, "database", "images", "*", "*.jpeg"
+        expected_images_path = os.path.join(base_path, "database", "images", "*", "*")
+        image_paths = glob.glob(f"{expected_images_path}.jpeg") + glob.glob(
+            f"{expected_images_path}.png"
         )
-        image_paths = glob.glob(expected_images_path)
+
         if len(image_paths) == 0:
             logging.warning("No images found in {}".format(expected_images_path))
 

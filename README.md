@@ -215,3 +215,63 @@ Following are the request response payload for each endpoint
         ]
       }
       ```
+      
+### CURLs
+
+- add face to image store:
+  ```
+    curl --request POST \
+    --header "Content-Type: application/json" \
+    --url "http://0.0.0.0:8000/add"  \
+    -d '{
+      "payloads": [
+        {
+          "image": "<base64_encoded_image_string>",
+          "userId": "test_user"
+        }
+      ]
+    }'
+  ```
+  
+- Recognize face already added face
+  ```
+    curl --request POST \
+    --header "Content-Type: application/json" \
+    --url "http://0.0.0.0:8000/recognize"  \
+    -d '{
+      "payloads": [
+        {
+          "image": "<base64_encoded_image_string>"
+        }
+      ]
+    }'
+  ```
+  
+- Detect face boundaries 
+  ```
+    curl --request POST \
+    --header "Content-Type: application/json" \
+    --url "http://0.0.0.0:8000/face-detect"  \
+    -d '{
+      "payloads": [
+        {
+          "image": "<base64_encoded_image_string>"
+        }
+      ]
+    }'
+  ```
+  
+- Verify if two images contains same face
+  ```
+    curl --request POST \
+    --header "Content-Type: application/json" \
+    --url "http://0.0.0.0:8000/verify"  \
+    -d '{
+      "payloads": [
+        {
+          "image1": "<base64_encoded_image_string>",
+          "image2": "<base64_encoded_image_string>"
+        }
+      ]
+    }'
+  ```

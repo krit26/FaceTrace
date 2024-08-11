@@ -27,6 +27,7 @@ def add_images_to_image_store(
     store_path=None,
     align=False,
     expand_percentage=0,
+    **kwargs,
 ):
     if store_path is None:
         store_path = DEFAULT_DATABASE_PATH
@@ -42,6 +43,7 @@ def add_images_to_image_store(
         detector_name=detector_name,
         align=align,
         expand_percentage=expand_percentage,
+        **kwargs,
     )
     try:
         image_metadata = []

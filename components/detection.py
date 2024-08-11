@@ -24,6 +24,7 @@ def detection(
     model_name,
     align=False,
     expand_percentage=0,
+    **kwargs,
 ) -> List[List[DetectedFace]]:
 
     try:
@@ -70,10 +71,8 @@ def detection(
                     int(rotated_x1) : int(rotated_x2),
                 ]
             detected_face = detected_face / 255
-            if (
-                face.confidence
-                and face.confidence
-                > app_config.detector_model.arguments.get("confidence_threshold", 0.85)
+            if face.confidence and face.confidence > kwargs.get(
+                "confidence_threshold", 0.85
             ):
                 faces.append(
                     DetectedFace(

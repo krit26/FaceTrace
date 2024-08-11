@@ -110,10 +110,7 @@ class FaceDetectionHandler(BaseHandler):
             outputs = detection(
                 images=[payload["image"] for payload in payloads["payloads"]],
                 model_name=app_config.detector_model.name,
-                align=app_config.detector_model.arguments.get("align", False),
-                expand_percentage=app_config.detector_model.arguments.get(
-                    "expand_percentage", 0
-                ),
+                **app_config.detector_model.arguments,
             )
         except Exception as e:
             raise tornado.web.HTTPError(status_code=500, log_message=str(e))
@@ -134,10 +131,7 @@ class FaceRepresentationHandler(BaseHandler):
                 images=[payload["image"] for payload in payloads["payloads"]],
                 embedding_name=app_config.embedding_model.name,
                 detector_name=app_config.detector_model.name,
-                align=app_config.detector_model.arguments.get("align", False),
-                expand_percentage=app_config.detector_model.arguments.get(
-                    "expand_percentage", 0
-                ),
+                **app_config.detector_model.arguments,
             )
         except Exception as e:
             raise tornado.web.HTTPError(status_code=500, log_message=str(e))

@@ -26,6 +26,7 @@ def verification(
     metric="cosine_similarity",
     align=False,
     expand_percentage=0,
+    **kwargs,
 ):
     if not isinstance(image_tuples, list):
         image_tuples = [image_tuples]
@@ -39,6 +40,7 @@ def verification(
                 detector_name=detector_name,
                 align=align,
                 expand_percentage=expand_percentage,
+                **kwargs,
             )[0]
         except Exception as e:
             raise Exception("Error in generating embedding for image1")
@@ -50,6 +52,7 @@ def verification(
                 detector_name=detector_name,
                 align=align,
                 expand_percentage=expand_percentage,
+                **kwargs,
             )[0]
         except Exception as e:
             raise Exception("Error in generating embedding for image1")
@@ -102,6 +105,7 @@ def recognize(
     detector_name=None,
     align=False,
     expand_percentage=0,
+    **kwargs,
 ):
     try:
         image_store: ImageMetadataStore = StoreHolder.get_store(store_name)
@@ -117,6 +121,7 @@ def recognize(
         detector_name=detector_name,
         align=align,
         expand_percentage=expand_percentage,
+        **kwargs,
     )
 
     queries = []

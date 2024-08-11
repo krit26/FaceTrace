@@ -46,6 +46,7 @@ def represent(
     detector_name=None,
     align=False,
     expand_percentage=0,
+    **kwargs,
 ) -> List[List[DetectedFace]]:
 
     if not isinstance(images, list):
@@ -59,7 +60,11 @@ def represent(
     detected_outputs = []
     if detector_name:
         detected_outputs = detection(
-            images, detector_name, align=align, expand_percentage=expand_percentage
+            images,
+            detector_name,
+            align=align,
+            expand_percentage=expand_percentage,
+            **kwargs,
         )
     else:
         for idx, image in enumerate(images):

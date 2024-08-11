@@ -44,7 +44,12 @@ class ImageMetadataStoreBuilder(AbstractStoreBuilder):
         # When base path exists
         image_metadata = []
         if os.path.exists(self.store_path):
-            metadata = load_json(self.store_path)
+            try:
+                metadata = load_json(self.store_path)
+            except Exception as e:
+                logging.error("Error in loading metadata json: {}".format(str(e)))
+                # setting metadata as empty list, since metadata json was corrupted
+                metadata = []
 
             if not isinstance(metadata, list):
                 raise Exception("image metadata should be list of dictionaries")

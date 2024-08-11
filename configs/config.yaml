@@ -4,6 +4,7 @@ detector_model:
   arguments:
     align: True
     expand_percentage: 0
+    confidence_threshold: 0.85
 
 embedding_model:
   name: "FaceNet512"

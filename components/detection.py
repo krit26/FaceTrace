@@ -7,6 +7,7 @@ import numpy as np
 # Internal Imports
 from utils.utils import timeit
 from models.model_holder import ModelHolder
+from configurations.config import app_config
 from utils.image_utils import load_image_using_pil
 from models.detectors import AbstractDetectionModel
 from structures.image import FaceSegment, DetectedFace
@@ -69,22 +70,27 @@ def detection(
                     int(rotated_x1) : int(rotated_x2),
                 ]
             detected_face = detected_face / 255
-            faces.append(
-                DetectedFace(
-                    model_name=model_name,
-                    image=detected_face,
-                    facial_segments=FaceSegment(
-                        x=x,
-                        y=y,
-                        w=w,
-                        h=h,
-                        left_eye=face.left_eye,
-                        right_eye=face.right_eye,
-                        confidence=face.confidence,
-                    ),
-                    alignment=align,
-                    expand_percentage=expand_percentage,
+            if (
+                face.confidence
+                and face.confidence
+                > app_config.detector_model.arguments.get("confidence_threshold", 0.85)
+            ):
+                faces.append(
+                    DetectedFace(
+                        model_name=model_name,
+                        image=detected_face,
+                        facial_segments=FaceSegment(
+                            x=x,
+                            y=y,
+                            w=w,
+                            h=h,
+                            left_eye=face.left_eye,
+                            right_eye=face.right_eye,
+                            confidence=face.confidence,
+                        ),
+                        alignment=align,
+                        expand_percentage=expand_percentage,
+                    )
                 )
-            )
         outputs.append(faces)
     return outputs

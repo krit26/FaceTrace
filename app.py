@@ -1,6 +1,7 @@
 # Standard Imports
 import logging
 import tornado
+from copy import deepcopy
 
 # Third Party Imports
 
@@ -12,6 +13,7 @@ from stores.store_holder import StoreHolder
 from configurations.config import app_config
 from components.verification import verification, recognize
 from components.operations import add_images_to_image_store
+from constants.constants import DEFAULT_RECOGNITION_RESPONSE
 
 PORT = 8000
 TMP_DIR = "/tmp"
@@ -48,7 +50,15 @@ class AddHandler(BaseHandler):
                 **app_config.detector_model.arguments,
             )
         except Exception as e:
-            raise tornado.web.HTTPError(status_code=500, log_message=str(e))
+            logging.error("Error in adding the image: {}".format(str(e)))
+            outputs = []
+            for _ in payloads["payloads"]:
+                outputs.append(
+                    {
+                        "success": False,
+                        "reason": "Error in adding the image: {}".format(str(e)),
+                    }
+                )
         return outputs
 
 
@@ -86,7 +96,10 @@ class RecognitionHandler(BaseHandler):
                 **app_config.detector_model.arguments,
             )
         except Exception as e:
-            raise tornado.web.HTTPError(status_code=500, log_message=str(e))
+            logging.error("Error in recognizing the image: {}".format(str(e)))
+            outputs = [
+                deepcopy(DEFAULT_RECOGNITION_RESPONSE) for _ in payloads["payloads"]
+            ]
         return outputs
 
 

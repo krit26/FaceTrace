@@ -9,3 +9,13 @@ VERIFICATION_THRESHOLDS = {
 }
 
 DEFAULT_DATABASE_PATH = "/tmp"
+
+DEFAULT_RECOGNITION_RESPONSE = {
+    "verified": False,
+    "distance": 0.83,
+    "metric": "cosine_similarity",
+    "threshold": 0.6,
+    "embedding_model": "FaceNet512",
+    "detector_mode": "FastMtcnn",
+    "userId": None,
+}

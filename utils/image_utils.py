@@ -25,6 +25,11 @@ def load_image_using_pil(image: Union[str, np.ndarray]) -> np.ndarray:
             image_string = base64.b64decode(image)
             image = pilImage.open(io.BytesIO(image_string))
         # convert image to numpy array for further processing
+        if image.mode in ("RGBA", "LA") or (
+            image.mode == "P" and "transparency" in image.info
+        ):
+            logging.info("Image has alpha channel. Converting it to RGB")
+            image = image.convert("RGB")
         image = np.array(image)
         return image
     elif isinstance(image, np.ndarray):

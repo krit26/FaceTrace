@@ -47,8 +47,8 @@ class FaceSegment:
 @dataclass
 class DetectedFace:
     model_name: str
-    image: np.ndarray
     facial_segments: FaceSegment
+    image: np.ndarray = None
     alignment: bool = False
     expand_percentage: float = 0
     embeddings: Dict[str, np.ndarray] = field(default_factory=dict)
@@ -65,7 +65,6 @@ class DetectedFace:
     def to_json(self):
         return {
             "model_name": self.model_name,
-            "image": self.image.tolist(),
             "face_segments": self.facial_segments.to_json(),
             "alignment": self.alignment,
             "expand_percentage": self.expand_percentage,
@@ -79,7 +78,6 @@ class DetectedFace:
     def from_json(json_dict):
         return DetectedFace(
             model_name=json_dict["model_name"],
-            image=np.array(json_dict["image"]),
             facial_segments=FaceSegment.from_json(json_dict["face_segments"]),
             alignment=json_dict["alignment"],
             expand_percentage=json_dict["expand_percentage"],

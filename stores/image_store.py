@@ -10,7 +10,7 @@ import faiss
 import numpy as np
 
 # Internal Imports
-from utils.utils import dump_json
+from utils.utils import dump_pickle
 from utils.utils import normalize_vectors
 from constants.constants import (
     EMBEDDING_MODEL_DIMENSION,
@@ -162,11 +162,14 @@ class ImageMetadataStore:
     async def __dump_loop(self, stop_event):
         while not stop_event.is_set():
             logging.info("Starting ImageMetadataStore Dumping")
+            start_time = time.time() * 1000
             self._dump_in_progress = True
             metadata = [
                 image_metadata.to_json() for image_metadata in self._image_metadata
             ]
-            _ = dump_json(metadata, self._store_path)
+            _ = dump_pickle(metadata, self._store_path)
             self._dump_in_progress = False
-            logging.info("dumping ImageMetadataStore Successfully")
+            logging.info(
+                f"dumping ImageMetadataStore Successfully, time taken: {round(time.time() * 1000 - start_time)} ms"
+            )
             await asyncio.sleep(self._dumping_interval)

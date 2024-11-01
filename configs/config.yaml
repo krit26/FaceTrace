@@ -20,5 +20,5 @@ image_store:
       metric: "cosine_similarity"
       embedding_model: "FaceNet512"
     dumping_kwargs:
-      interval: 120
+      interval: 600
 

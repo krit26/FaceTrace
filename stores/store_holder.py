@@ -12,8 +12,10 @@ class StoreHolder(object):
     _store_holder, _last_load_time = {}, {}
 
     @staticmethod
-    def get_or_load_store(builder_name, store_name, store_path=None, **kwargs):
-        if store_name not in StoreHolder._store_holder:
+    def get_or_load_store(
+        builder_name, store_name, store_path=None, load=False, **kwargs
+    ):
+        if store_name not in StoreHolder._store_holder or load:
             if builder_name not in globals():
                 raise Exception(f"{builder_name} builder does not exists")
 

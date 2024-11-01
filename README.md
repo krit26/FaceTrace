@@ -46,7 +46,7 @@ Face Recognition Project
       to store the precalculated embeddings.
       if when service is started, and it find images folder in database folder, then it will automatically
       calculate the embeddings of images and create `metadata.json` by itself
--  Once `./env` is created, then just run `docker-composer up`
+-  Once `./env` is created, then just run `docker-compose up`
 
 Once all the service are up, once can access the playground UI to make sample curls to the service.
 example:
@@ -63,6 +63,7 @@ Face Recognition API support following endpoints:
 3. `/verity`: given 2 images in inputs, it verifies if both are matching or not.
 4. `/add`: api maintain an image store, in which client can add new images which will be used later for recognition purpose.
 5. `/recognize`: for given input, it will try to verify it with existing image in image store
+6. `/re-index`: it will re index all the images in database
 
 Following are the request response payload for each endpoint
 
@@ -274,4 +275,11 @@ Following are the request response payload for each endpoint
         }
       ]
     }'
+  ```
+  
+  - re index all the images
+  ```
+    curl --request POST \
+    --header "Content-Type: application/json" \
+    --url "http://0.0.0.0:8000/re-index"'
   ```

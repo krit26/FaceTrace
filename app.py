@@ -149,6 +149,25 @@ class FaceRepresentationHandler(BaseHandler):
         return responses
 
 
+class ReIndexingHandler(BaseHandler):
+
+    async def _process_payload(self, payloads):
+        try:
+            logging.info(f"Loading image metadata from {app_config.image_store.path}")
+            _ = StoreHolder.get_or_load_store(
+                store_name=app_config.image_store.store_name,
+                builder_name=app_config.image_store.builder_name,
+                store_path=app_config.database_path,
+                load=True,
+                rebuild=True,
+                **app_config.image_store.arguments,
+            )
+            logging.info("Successfully loaded image metadata")
+            return {"success": True}
+        except Exception as e:
+            raise Exception(f"Error in loading image store: {str(e)}")
+
+
 def app_initializer():
     if app_config.detector_model:
         try:
@@ -202,6 +221,7 @@ def main():
             (r"/recognize", RecognitionHandler),
             (r"/face-detect", FaceDetectionHandler),
             (r"/represent", FaceRepresentationHandler),
+            (r"/re-index", ReIndexingHandler),
         ]
     )
     application.listen(PORT)

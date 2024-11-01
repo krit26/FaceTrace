@@ -1,6 +1,7 @@
 # Standard Imports
 import time
 import json
+import pickle
 import asyncio
 import logging
 
@@ -47,6 +48,12 @@ def load_yaml(path):
     return data
 
 
+def load_pickle(path):
+    with open(path, "rb") as file:
+        data = pickle.load(file)
+    return data
+
+
 def load_json(path):
     with open(path, "r") as file:
         data = json.load(file)
@@ -56,6 +63,11 @@ def load_json(path):
 def dump_json(data, path):
     with open(path, "w") as file:
         json.dump(data, file)
+
+
+def dump_pickle(data, path):
+    with open(path, "wb") as file:
+        pickle.dump(data, file)
 
 
 def normalize_vectors(vectors, **kwargs):

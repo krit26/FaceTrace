@@ -6,11 +6,11 @@ import logging
 # Third Part Imports
 
 # Internal Imports
-from utils.utils import load_json
 from stores import AbstractStoreBuilder
 from structures.image import ImageMetadata
 from components.embeddings import represent
 from configurations.config import app_config
+from utils.utils import load_json, load_pickle
 from stores.image_store import ImageMetadataStore
 from constants.constants import DEFAULT_DATABASE_PATH
 
@@ -31,7 +31,7 @@ class ImageMetadataStoreBuilder(AbstractStoreBuilder):
         if not os.path.exists(os.path.join(base_path, "database")):
             os.makedirs(os.path.join(base_path, "database"), exist_ok=True)
 
-        self.store_path = os.path.join(base_path, "database", "metadata.json")
+        self.store_path = os.path.join(base_path, "database", "metadata.pickle")
         kwargs.update({"store_path": self.store_path})
 
         # When base path doesn't exist
@@ -41,11 +41,12 @@ class ImageMetadataStoreBuilder(AbstractStoreBuilder):
             self._image_store = ImageMetadataStore([], **kwargs)
             return self._image_store
 
+        rebuild = kwargs.get("rebuild", False)
         # When base path exists
         image_metadata = []
-        if os.path.exists(self.store_path):
+        if os.path.exists(self.store_path) and not rebuild:
             try:
-                metadata = load_json(self.store_path)
+                metadata = load_pickle(self.store_path)
             except Exception as e:
                 logging.error("Error in loading metadata json: {}".format(str(e)))
                 # setting metadata as empty list, since metadata json was corrupted
@@ -71,8 +72,10 @@ class ImageMetadataStoreBuilder(AbstractStoreBuilder):
 
         # Following logics check if their any image not present in metadata
         expected_images_path = os.path.join(base_path, "database", "images", "*", "*")
-        image_paths = glob.glob(f"{expected_images_path}.jpeg") + glob.glob(
-            f"{expected_images_path}.png"
+        image_paths = (
+            glob.glob(f"{expected_images_path}.jpeg")
+            + glob.glob(f"{expected_images_path}.png")
+            + glob.glob(f"{expected_images_path}.jpg")
         )
 
         if len(image_paths) == 0:

@@ -4,12 +4,13 @@ import io
 import base64
 import hashlib
 import logging
-from typing import List, Union
+from typing import Union
 
 # Third Party Imports
 import cv2
 import numpy as np
 from PIL import Image as pilImage
+from PIL import ImageOps
 from tensorflow.keras.preprocessing import image as tf_image
 
 # Internal Imports
@@ -30,6 +31,9 @@ def load_image_using_pil(image: Union[str, np.ndarray]) -> np.ndarray:
         ):
             logging.info("Image has alpha channel. Converting it to RGB")
             image = image.convert("RGB")
+        image = ImageOps.exif_transpose(
+            image
+        )  # helps in keeping the orientation of the image intact
         image = np.array(image)
         return image
     elif isinstance(image, np.ndarray):

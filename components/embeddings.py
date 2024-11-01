@@ -1,4 +1,5 @@
 # Standard Imports
+import copy
 import logging
 from typing import Union, List
 
@@ -55,6 +56,7 @@ def represent(
     if len(images) == 0:
         return []
 
+    list_of_images = copy.deepcopy(images)
     images = [load_image_using_pil(image) for image in images]
 
     detected_outputs = []
@@ -83,7 +85,12 @@ def represent(
             )
 
     embedding_batch = []
-    for detected_output in detected_outputs:
+    for idx, detected_output in enumerate(detected_outputs):
+        if len(detected_output) == 0:
+            logging.error("Image path: {}".format(list_of_images[idx]))
+        if len(detected_output) > 1:
+            logging.error("Image path > 1 : {}".format(list_of_images[idx]))
+            # logging.info("faces: {}".format(detected_output))
         for face in detected_output:
             embedding_batch.append(face.image)
 

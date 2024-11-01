@@ -96,8 +96,13 @@ class ImageMetadataStoreBuilder(AbstractStoreBuilder):
                 expand_percentage=app_config.detector_model.arguments.get(
                     "expand_percentage", 0
                 ),
+                confidence_threshold=app_config.detector_model.arguments.get(
+                    "confidence_threshold", 0.85
+                ),
             )
             for idx, detected_faces in enumerate(representations):
+                if len(detected_faces) == 0:
+                    continue
                 image_metadata.append(
                     ImageMetadata(
                         image_path=image_paths[idx],

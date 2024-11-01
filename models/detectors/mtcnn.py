@@ -1,4 +1,5 @@
 # Standard Imports
+import logging
 from typing import List, Union
 
 # Third Party Imports
@@ -27,6 +28,12 @@ class FastMtcnn(AbstractDetectionModel):
         for image in inputs:
             detections = self.model.detect(image, landmarks=True)
             detected_faces = []
+
+            if detections is None or detections[0] is None:
+                outputs.append(detected_faces)
+                logging.error("No faces detected")
+                continue
+
             for regions, confidence, eyes in zip(*detections):
                 x, y, w, h = self._xyxy_to_xywh(regions)
                 right_eye = eyes[0]

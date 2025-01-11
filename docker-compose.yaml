@@ -19,7 +19,7 @@ services:
       - 8001:8001
     environment:
       - DATABASE_PATH=${DATABASE_PATH}
-      - APP_URL=${API_URL}
+      - API_URL=${API_URL}
     volumes:
       - ${HOST_PATH}:${MOUNT_PATH}
     env_file:

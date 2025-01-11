@@ -23,7 +23,10 @@ class BaseHandler(tornado.web.RequestHandler):
 
     async def post(self):
         try:
-            payloads = tornado.escape.json_decode(self.request.body)
+            if self.request.body == b'':
+                payloads = self.request.body
+            else:
+                payloads = tornado.escape.json_decode(self.request.body)
         except Exception as e:
             raise tornado.web.HTTPError(
                 status_code=400, log_message=f"Error in decoding json inputs: {str(e)}"

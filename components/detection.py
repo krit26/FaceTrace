@@ -71,8 +71,11 @@ def detection(
                     int(rotated_x1) : int(rotated_x2),
                 ]
             detected_face = detected_face / 255
-            if face.confidence and face.confidence > kwargs.get(
-                "confidence_threshold", 0.85
+            if (
+                face.confidence
+                and face.confidence > kwargs.get("confidence_threshold", 0.85)
+                and detected_face.shape[0] != 0
+                and detected_face.shape[1] != 0
             ):
                 faces.append(
                     DetectedFace(

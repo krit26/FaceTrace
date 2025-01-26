@@ -133,8 +133,11 @@ class ImageMetadataStore:
             queries = normalize_vectors(queries)
 
         logging.info("queries shape: {}".format(queries.shape))
-        distances, indices = self._faiss.search(queries, nearest_neighbours)
         search_result = []
+        if queries.shape[0] == 0:
+            return [[None] * nearest_neighbours] * len(queries)
+
+        distances, indices = self._faiss.search(queries, nearest_neighbours)
         for idx in range(len(queries)):
             results = []
             for index, dist in zip(indices[idx], distances[idx]):

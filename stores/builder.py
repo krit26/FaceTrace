@@ -102,7 +102,13 @@ class ImageMetadataStoreBuilder(AbstractStoreBuilder):
             )
             for idx, detected_faces in enumerate(representations):
                 if len(detected_faces) == 0:
-                    continue
+                    image_metadata.append(
+                        ImageMetadata(
+                            image_path=image_paths[idx],
+                            user_id=image_paths[idx].split("/")[-2],
+                            detected_faces=detected_faces,
+                        )
+                    )
                 image_metadata.append(
                     ImageMetadata(
                         image_path=image_paths[idx],
